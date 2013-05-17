@@ -1,0 +1,158 @@
+
+****************************************************************
+* Release notes for libGLES_CM.dll, version 0.258 (pre-alpha). *
+****************************************************************
+
+---------------
+ Installation:
+---------------
+
+Simply put libGLES_CM.zip into \Windows folder on your device or install 
+OpenGLESv1.cab.
+
+Note:
+    Don't forget to switch your device to HIGH performance mode or plug a 
+charge adapter otherwise you won't get any decent performance.
+
+----------------
+ Compatibility:
+----------------
+
+What works:
+
+    * glBenchmark 1.0/1.1
+    * Xtrakt (my biggest success yet!)
+    * Tower Defense
+    * HG Engine (Hologram App) and HG Proton [reported by daskalos]
+    * TouchFlo3D v1.3
+    * Opera Mobile 9.7
+    * Experiment 13
+    * Flight Commander
+    * 10 Games for Betting
+
+Known issues:
+
+    * glBenchmark hangs after 10-13 tests, don't know why. So, if you want to 
+benchmark, do it in 3-4 runs. Also, 'Flat' shading mode doesn't work, 
+everything renders as 'Smooth'.
+    * Xtrakt has some minor texturing issues (as you may see on fonts) due to 
+the unsupported 1024x1024 texture resolution. Although it's perfectly 
+playable.
+    * Some alpha-blensing issues with Spb Mobile Shell, NFS: Undercover, 10 
+Games for Betting and Call of Duty 2.
+
+What does NOT work:
+
+    * Spb Mobile Shell 3.5. Although you may switch acceleration on by 
+registry at [HKLM\Software\Spb Software House 2\Spb Mobile Shell\Gl\], 
+setting GlEnabed to 1, but it is really unusable: you can't tap on a panel or 
+a message to select it, you can only swipe to rotate carousel. I don't really 
+care, because Spb wants to add GL2 support in the nearest future.
+    * NFS: Undercover. Almost worked for some time, but used to hang or crash 
+randomly, and now it won't start at all. Again, I don't really care, as there 
+will be NFS in Samsung's AppStore.
+    * Tons of GL apps.
+
+Remember, I DON'T want to know about apps that DOESN'T work.
+What I DO want to know about, is if anything else apart from 
+glBenchmark/Xtrakt DOES work. That would really be a surprise!
+
+Bonus (for Samsung representatives if any). A short list of some stupid bugs 
+found in Samsung's driver during my work on this project:
+
+    * eglGetDisplay(0) fails. It should work with a zero argument, by 
+standard, but it fails.
+    * Calling glGetString() before eglInitialize(), crashes.
+    * eglGetConfigs with config_size = 4096 crashes.
+    * glBindBuffer generates GL_OUT_OF_MEMORY if buffer number is above 100 
+(it is an actual limit hard-wired into libGLESv2, I had to re-implement the 
+whole buffer management by myself). And, Xtrakt needs 102 buffers...
+    * glGetIntegerv(GL_MAX_TEXTURE_UNITS) returns 0 instead of 2. This one 
+totally breaks NFS.
+    * glGetIntegerv(GL_MAX_TEXTURE_SIZE) returns 2048. In reality, every 
+texture larger than 512x512 is going to be ignored at all, with some 
+allocaton errors in debugger output. It may be used with S3TC, but it's DXT1 
+only, not even DXT5. And, somehow, with a GL_RGBA_S3TC_OES format, an alpha 
+bit is ignored at all.
+    * And don't forget to create mipmaps, or GL_*_MIPMAP_* won't draw 
+anything at all (it should just use the only level available)!
+    * glAlphaFuncEXP is not iplemented in libGLESv2 (though the hardware DOES 
+have this available), had to do a hack for this to work.
+    * glViewport works wrong after all. If the parameters, e.g. X and Width 
+have a larger sum than the width of the window surface, then the resulting 
+width is clamped, which results in scaled down rendering. It may be seen on 
+TouchFLO 3D's clock with the v0.204 build of compatibility layer.
+    * eglCreateWindowSurface is a fail: it doesn't track window size change 
+at all, so if you create a surface and change window size, your output will 
+be of an inadequate size (e.g., in Opera 9.7 going from Widowed mode to 
+Fullscreen, or in anything else when going from Landscape to Portrait mode).
+    * eglSwapBuffers is slow as hell (probably because of plain BitBlt it 
+uses), it takes about 10 ms, which limits fps to about 100 and reduces the 
+speed of everything else (e.g., you'll get 16 fps where you could have 20, 
+only because of this functon).
+    * All textures have an offset by half-texel. This is probably done for 
+mapping to the nearest texel (like, round(u + 0.5)), but it breaks everything 
+that is drawn, for example, with glOrtho (like Opera 9.7). Well, not exactly 
+breaks, but akes everything look "smoothed out".
+
+------------------
+ Release history:
+------------------
+
+ Version 0.258 (Nov 29, 2009)
+
+  Yet another minor update:
+    * adds PVRTC support (not sure if it gives anything useful, but let it 
+be: maybe some game for Dell Axim will finally work, maybe not);
+    * fixes minor ambient lighting issue (as seen in TestOpenGL's donut test; 
+BTW, I'm proud to say that my lib works FASTER in TestOpenGL than HD2 does, 
+although with minor issues!);
+    * removes matrix palette from extensions list (so that glBenchmark 1.1 
+wouldn't hang);
+    * and fixes a crash on MindPol's Coin game from their 10 Games for 
+Betting.
+
+  I'd say, the latter game is the only reason why anyone would want to 
+update.
+
+------------------------------
+ Version 0.257 (Nov 20, 2009)
+
+  Following games are now supported:
+    * Flight Commander
+    * Experiment 13
+
+------------------------------
+ Version 0.256 (Nov 14, 2009)
+
+  A minor yet highly recommended update!
+  Introduced a minus half-texel offset for every texture coordinate that 
+libgles renders (yet another Samsung's bug).
+  The difference, now, is huge. First thing you'll probably notice, is a 
+perfect (pixel-wise) Opera 9.7 rendering.
+  Second, some of the irritating lines in Xtrakt are gone as well.
+  Third, Tower Defense gets a tiny bit more clear and sharp look.
+
+-----------------------------
+ Version 0.250 (Nov 2, 2009)
+
+  Faster, smaller, better. That is:
+    * It does QTC texture decompression more quickly, so Xtrakt loads a tad 
+faster, and lags in TF3D were reduced (though haven't gone completely).
+    * It has a smaller footprint, so Acer M900 users should be able to run 
+Xtrakt now.
+    * It allows to run an original unmodified TouchFLO 3D 1.3 (fixes yet 
+another Samsung's bug, this time in glViewport). Maybe it can do even more, 
+but that was not tested. smile.gif
+    * CFC 0.60 fully supported.
+
+  Though, if you want TF3D, I strongly advise you to use Chainfire's package 
+with recompressed textures, as they have better quality, the package itself 
+is significantly smaller and it runs much faster.
+
+----------------------------
+ Version 0.2 (Sep 24, 2009)
+
+    * Initial release
+
+
